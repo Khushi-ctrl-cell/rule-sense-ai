@@ -237,6 +237,18 @@ export default function ArchitecturePage() {
           <p>• <strong className="text-foreground">ML as augmentation:</strong> Anomaly detection (Isolation Forest) runs alongside rules for coverage, but never overrides deterministic decisions.</p>
         </div>
       </motion.div>
+
+      {/* Known Limitations */}
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card p-4">
+        <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><AlertTriangle className="w-4 h-4 text-warning" /> Known Limitations</h3>
+        <div className="space-y-2 text-xs text-muted-foreground">
+          <p>• <strong className="text-foreground">Graph performance:</strong> SVG-based network visualization degrades beyond ~100K nodes. Production would use WebGL or a dedicated graph DB (Neo4j).</p>
+          <p>• <strong className="text-foreground">AI parsing latency:</strong> PDF → structured rule extraction takes ~2–3s per page via LLM API. Not suitable for real-time ingestion without caching.</p>
+          <p>• <strong className="text-foreground">Simulated streaming:</strong> Current implementation uses batch processing with simulated real-time behavior. Production would use event-driven architecture (Kafka / Azure Event Hubs).</p>
+          <p>• <strong className="text-foreground">Synthetic data only:</strong> ML anomaly model trained on IBM AML synthetic labels. Real-world deployment requires retraining on institution-specific data.</p>
+          <p>• <strong className="text-foreground">Single-node demo:</strong> Horizontal scaling tested conceptually (see Benchmarks). No distributed deployment in hackathon scope.</p>
+        </div>
+      </motion.div>
     </div>
   );
 }
