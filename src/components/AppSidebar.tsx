@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Shield, AlertTriangle, BarChart3, FileText, 
-  Settings, Cpu, Network, Beaker, Menu, X, Activity
+  Settings, Cpu, Network, Beaker, Menu, X, Activity, Zap, ShieldCheck
 } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,6 +14,8 @@ const navItems = [
   { to: '/audit', icon: FileText, label: 'Audit Trail' },
   { to: '/simulator', icon: Beaker, label: 'Simulator' },
   { to: '/network', icon: Network, label: 'Network Graph' },
+  { to: '/benchmarks', icon: Zap, label: 'Benchmarks' },
+  { to: '/data-integrity', icon: ShieldCheck, label: 'Data Integrity' },
   { to: '/architecture', icon: Cpu, label: 'Architecture' },
 ];
 

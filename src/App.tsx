@@ -12,6 +12,8 @@ import AuditPage from "./pages/AuditPage";
 import SimulatorPage from "./pages/SimulatorPage";
 import NetworkPage from "./pages/NetworkPage";
 import ArchitecturePage from "./pages/ArchitecturePage";
+import BenchmarksPage from "./pages/BenchmarksPage";
+import DataIntegrityPage from "./pages/DataIntegrityPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotFound from "./pages/NotFound";
 
@@ -32,6 +34,8 @@ const App = () => (
             <Route path="/audit" element={<AuditPage />} />
             <Route path="/simulator" element={<SimulatorPage />} />
             <Route path="/network" element={<NetworkPage />} />
+            <Route path="/benchmarks" element={<BenchmarksPage />} />
+            <Route path="/data-integrity" element={<DataIntegrityPage />} />
             <Route path="/architecture" element={<ArchitecturePage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="*" element={<NotFound />} />
