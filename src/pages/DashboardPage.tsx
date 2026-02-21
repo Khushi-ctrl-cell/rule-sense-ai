@@ -20,10 +20,15 @@ const ruleViolationData = mockRules.map(r => ({
   violations: mockViolations.filter(v => v.rule_id === r.rule_id).length,
 })).sort((a, b) => b.violations - a.violations).slice(0, 6);
 
-const trendData = Array.from({ length: 7 }, (_, i) => {
-  const d = new Date(); d.setDate(d.getDate() - (6 - i));
-  return { day: d.toLocaleDateString('en', { weekday: 'short' }), violations: 20 + Math.floor(Math.random() * 30), score: 70 + Math.floor(Math.random() * 15) };
-});
+const trendData = [
+  { day: 'Sat', violations: 28, score: 78 },
+  { day: 'Sun', violations: 35, score: 72 },
+  { day: 'Mon', violations: 42, score: 74 },
+  { day: 'Tue', violations: 31, score: 80 },
+  { day: 'Wed', violations: 38, score: 76 },
+  { day: 'Thu', violations: 45, score: 71 },
+  { day: 'Fri', violations: 33, score: 77 },
+];
 
 const totalExposure = mockViolations.reduce((s, v) => s + (v.estimated_exposure || 0), 0);
 const complianceScore = mockScanResults[0]?.compliance_score || 75;

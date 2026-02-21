@@ -58,36 +58,52 @@ export const mockRules: ComplianceRule[] = [
   },
 ];
 
+// IBM AML dataset-aligned fields
+const bankNames = ['Bank of America', 'HSBC', 'Deutsche Bank', 'JPMorgan Chase', 'Barclays', 'Standard Chartered', 'Citibank', 'Wells Fargo', 'UBS', 'Credit Suisse'];
 const countries = ['US', 'UK', 'IN', 'DE', 'CN', 'RU', 'AE', 'SG', 'CH', 'NG', 'BR', 'JP', 'KR', 'PK', 'IR'];
-const paymentFormats = ['Wire', 'ACH', 'SWIFT', 'RTGS', 'Cash', 'Crypto', 'Check'];
+const paymentFormats = ['Wire', 'ACH', 'SWIFT', 'RTGS', 'Cash', 'Crypto', 'Check', 'Reinvestment'];
 const txnTypes = ['Transfer', 'Deposit', 'Withdrawal', 'Payment', 'Exchange'];
+const currencies = ['USD', 'EUR', 'GBP', 'INR', 'CHF', 'AED', 'SGD', 'JPY'];
 
-function randomFrom<T>(arr: T[]): T { return arr[Math.floor(Math.random() * arr.length)]; }
-function randomBetween(min: number, max: number) { return Math.floor(Math.random() * (max - min) + min); }
-function randomId() { return 'TXN-' + Math.random().toString(36).substring(2, 10).toUpperCase(); }
+// Seeded PRNG to prevent re-render flickering
+function seededRandom(seed: number) {
+  let s = seed;
+  return () => {
+    s = (s * 16807 + 0) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
+
+const rng = seededRandom(42);
+
+function randomFrom<T>(arr: T[]): T { return arr[Math.floor(rng() * arr.length)]; }
+function randomBetween(min: number, max: number) { return Math.floor(rng() * (max - min) + min); }
+function randomId(prefix = 'TXN') { return `${prefix}-${Math.abs(randomBetween(100000, 999999)).toString(36).toUpperCase().padEnd(6, '0')}`; }
 function randomAccountId() { return 'ACC-' + randomBetween(1000, 9999); }
 
 function generateTransactions(count: number): Transaction[] {
   const txns: Transaction[] = [];
-  const now = new Date();
+  const baseTime = new Date('2026-02-21T12:00:00Z').getTime();
   for (let i = 0; i < count; i++) {
-    const isLaundering = Math.random() < 0.12;
+    const isLaundering = rng() < 0.12;
     const amount = isLaundering
-      ? (Math.random() < 0.5 ? randomBetween(8000, 9999) : randomBetween(15000, 500000))
+      ? (rng() < 0.5 ? randomBetween(8000, 9999) : randomBetween(15000, 500000))
       : randomBetween(50, 25000);
     const daysAgo = randomBetween(0, 90);
-    const date = new Date(now.getTime() - daysAgo * 86400000 - randomBetween(0, 86400000));
+    const date = new Date(baseTime - daysAgo * 86400000 - randomBetween(0, 86400000));
+    const fromCountry = randomFrom(countries);
+    const toCountry = randomFrom(countries);
     txns.push({
-      id: randomId(),
+      id: randomId('TXN'),
       timestamp: date.toISOString(),
       from_account: randomAccountId(),
       to_account: randomAccountId(),
       amount,
-      currency: 'USD',
+      currency: randomFrom(currencies),
       transaction_type: randomFrom(txnTypes),
       is_laundering: isLaundering,
-      from_country: randomFrom(countries),
-      to_country: randomFrom(countries),
+      from_country: fromCountry,
+      to_country: toCountry,
       payment_format: randomFrom(paymentFormats),
       risk_score: isLaundering ? randomBetween(55, 98) : randomBetween(5, 50),
     });
@@ -106,7 +122,7 @@ function generateViolations(): Violation[] {
       violations.push({
         id: `VIO-${String(++idx).padStart(4, '0')}`, record_id: txn.id, rule_id: 'AML_001',
         rule_name: 'Large Transaction Threshold',
-        field_values: { amount: txn.amount, from_account: txn.from_account },
+        field_values: { amount: txn.amount, from_account: txn.from_account, currency: txn.currency },
         reason: `Transaction amount $${txn.amount.toLocaleString()} exceeds $10,000 threshold`,
         severity: txn.amount > 50000 ? 'Critical' : 'High', confidence: randomBetween(75, 99),
         timestamp: txn.timestamp, status: randomFrom(statuses),
@@ -152,9 +168,9 @@ function generateAccountRisks(): AccountRisk[] {
     return {
       account_id: acc, risk_score: score, risk_level: level,
       violation_count: vCount, high_severity_count: Math.floor(vCount * 0.4),
-      repeat_violations: Math.floor(vCount * 0.3), risky_geography: Math.random() < 0.25,
-      structuring_detected: Math.random() < 0.1,
-      last_scan: new Date().toISOString(), trend: randomFrom(['up', 'down', 'stable'] as const),
+      repeat_violations: Math.floor(vCount * 0.3), risky_geography: rng() < 0.25,
+      structuring_detected: rng() < 0.1,
+      last_scan: '2026-02-21T10:00:00Z', trend: randomFrom(['up', 'down', 'stable'] as const),
     };
   });
 }
@@ -169,13 +185,13 @@ export const mockScanResults: ScanResult[] = [
 
 export const mockAuditLog: AuditEntry[] = [
   { id: 'AUD-001', action: 'Rule Updated', user: 'Compliance Officer', timestamp: '2026-02-21T09:30:00Z', details: 'AML_001 threshold changed from $8,000 to $10,000', category: 'Rule Change' },
-  { id: 'AUD-002', action: 'Scan Completed', user: 'System', timestamp: '2026-02-21T10:00:00Z', details: `Full scan: ${mockViolations.length} violations detected`, category: 'Scan' },
-  { id: 'AUD-003', action: 'Violation Reviewed', user: 'Senior Analyst', timestamp: '2026-02-21T10:15:00Z', details: 'VIO-0012 marked as True Positive', category: 'Review' },
-  { id: 'AUD-004', action: 'Rule Created', user: 'Risk Manager', timestamp: '2026-02-20T14:00:00Z', details: 'AML_007 High-Risk Jurisdiction rule added', category: 'Rule Change' },
-  { id: 'AUD-005', action: 'Account Escalated', user: 'Compliance Officer', timestamp: '2026-02-20T16:30:00Z', details: 'ACC-4521 escalated to senior review', category: 'Escalation' },
-  { id: 'AUD-006', action: 'Policy Uploaded', user: 'Admin', timestamp: '2026-02-19T09:00:00Z', details: 'AML Policy v3.2 uploaded and parsed', category: 'Policy' },
-  { id: 'AUD-007', action: 'Violation Resolved', user: 'Senior Analyst', timestamp: '2026-02-19T11:00:00Z', details: 'VIO-0005 resolved after manual review', category: 'Review' },
-  { id: 'AUD-008', action: 'System Alert', user: 'System', timestamp: '2026-02-18T22:00:00Z', details: 'Structuring pattern detected for ACC-3847', category: 'Alert' },
+  { id: 'AUD-002', action: 'Scan Completed', user: 'System', timestamp: '2026-02-21T10:00:00Z', details: `Full scan: ${mockViolations.length} violations detected across 500 IBM AML records`, category: 'Scan' },
+  { id: 'AUD-003', action: 'Violation Reviewed', user: 'Senior Analyst', timestamp: '2026-02-21T10:15:00Z', details: 'VIO-0012 marked as True Positive — FATF Rec. 10 confirmed', category: 'Review' },
+  { id: 'AUD-004', action: 'Rule Created', user: 'Risk Manager', timestamp: '2026-02-20T14:00:00Z', details: 'AML_007 High-Risk Jurisdiction rule added (FATF Country List 2025)', category: 'Rule Change' },
+  { id: 'AUD-005', action: 'Account Escalated', user: 'Compliance Officer', timestamp: '2026-02-20T16:30:00Z', details: 'ACC-4521 escalated to senior review — circular transfer pattern', category: 'Escalation' },
+  { id: 'AUD-006', action: 'Policy Uploaded', user: 'Admin', timestamp: '2026-02-19T09:00:00Z', details: 'AML Policy v3.2 uploaded and parsed — 8 rules extracted', category: 'Policy' },
+  { id: 'AUD-007', action: 'Violation Resolved', user: 'Senior Analyst', timestamp: '2026-02-19T11:00:00Z', details: 'VIO-0005 resolved after manual review — false positive confirmed', category: 'Review' },
+  { id: 'AUD-008', action: 'System Alert', user: 'System', timestamp: '2026-02-18T22:00:00Z', details: 'Structuring pattern detected for ACC-3847 — 5x $9,800 in 2 hours', category: 'Alert' },
 ];
 
 export function getSeverityColor(severity: string) {
