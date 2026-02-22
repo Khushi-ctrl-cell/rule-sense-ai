@@ -1,7 +1,8 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Shield, AlertTriangle, BarChart3, FileText, 
-  Settings, Cpu, Network, Beaker, Menu, X, Activity, Zap, ShieldCheck
+  Settings, Cpu, Network, Beaker, Menu, X, Activity, Zap, ShieldCheck,
+  Brain, Briefcase, PieChart
 } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,8 +10,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/rules', icon: Shield, label: 'Rule Engine' },
+  { to: '/nl-rules', icon: Brain, label: 'AI Rule Creator' },
   { to: '/violations', icon: AlertTriangle, label: 'Violations' },
+  { to: '/cases', icon: Briefcase, label: 'Cases' },
   { to: '/risk', icon: BarChart3, label: 'Risk Scores' },
+  { to: '/rule-analytics', icon: PieChart, label: 'Rule Analytics' },
   { to: '/audit', icon: FileText, label: 'Audit Trail' },
   { to: '/simulator', icon: Beaker, label: 'Simulator' },
   { to: '/network', icon: Network, label: 'Network Graph' },
